@@ -1,0 +1,45 @@
+/* Grafica provvisoria: da sostituire con il design definitivo */
+:root { --bg: #14122b; --bg2: #1e1b3d; --oro: #d9b45a; --oro2: #b8862b; --testo: #f3ead6; --muted: #a9a2c4; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: radial-gradient(circle at 50% 0%, #2a2560, var(--bg) 70%) fixed; color: var(--testo); font-family: Georgia, 'Times New Roman', serif; }
+main { max-width: 480px; margin: 0 auto; padding: 24px 20px 48px; min-height: 100vh; }
+.step { display: none; animation: in .35s ease; }
+.step.on { display: block; }
+@keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.center { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+h1 { font-size: 64px; margin: 0 0 12px; color: var(--oro); letter-spacing: 4px; text-transform: uppercase; font-weight: normal; }
+h2 { font-size: 26px; font-weight: normal; margin: 8px 0 20px; }
+.kicker { text-transform: uppercase; letter-spacing: 3px; font-size: 13px; color: var(--muted); margin: 0; }
+.lead { color: var(--muted); font-size: 17px; line-height: 1.5; margin: 0 0 32px; }
+.label { text-transform: uppercase; letter-spacing: 2px; font-size: 12px; color: var(--muted); margin: 20px 0 8px; }
+.btn { display: inline-block; text-align: center; text-decoration: none; cursor: pointer; border: 1px solid var(--oro); background: var(--oro); color: #1a1530; font: 600 17px Georgia, serif; padding: 15px 40px; border-radius: 40px; width: 100%; max-width: 320px; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.sec { background: transparent; color: var(--oro); padding: 12px 16px; }
+.row { display: flex; gap: 12px; margin: 16px 0; }
+.row .btn { flex: 1; }
+.link { background: none; border: 0; color: var(--muted); font: 15px Georgia, serif; margin-top: 16px; cursor: pointer; }
+.progress { height: 3px; background: var(--bg2); border-radius: 3px; margin: 8px 0 32px; overflow: hidden; }
+#bar { height: 100%; background: var(--oro); transition: width .3s; }
+.opzioni { display: flex; flex-direction: column; gap: 12px; }
+.opz { text-align: left; background: var(--bg2); border: 1px solid #3a3570; color: var(--testo); font: 17px Georgia, serif; padding: 18px 20px; border-radius: 14px; cursor: pointer; transition: all .15s; }
+.opz.sel, .opz:active { border-color: var(--oro); background: #2c2758; }
+.toggle { display: flex; background: var(--bg2); border-radius: 30px; padding: 4px; }
+.toggle button { flex: 1; background: none; border: 0; color: var(--muted); font: 15px Georgia, serif; padding: 10px; border-radius: 26px; cursor: pointer; }
+.toggle button.sel { background: var(--oro); color: #1a1530; }
+.foto-box { aspect-ratio: 1; max-width: 220px; margin: 0 auto; border: 1px dashed #4a4580; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--muted); font-size: 14px; padding: 0; }
+.foto-box #foto-vuota { padding: 30px; }
+.foto-box img { display: none; width: 100%; height: 100%; object-fit: cover; }
+.consenso { display: flex; gap: 10px; font-size: 13px; color: var(--muted); line-height: 1.45; margin: 8px 0 24px; }
+.consenso input { margin-top: 3px; accent-color: var(--oro); }
+#crea { display: block; margin: 0 auto; }
+.errore { color: #ff8f8f; text-align: center; }
+.spinner { width: 64px; height: 64px; border: 3px solid #3a3570; border-top-color: var(--oro); border-radius: 50%; animation: gira 1s linear infinite; margin-bottom: 24px; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.carta { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(217,180,90,.3); }
+.carta img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.carta video { position: absolute; object-fit: cover; }
+.carta video { opacity: 0; transition: opacity 1.2s; }
+.carta video.on { opacity: 1; }
+.stato { text-align: center; color: var(--muted); font-size: 14px; min-height: 20px; }
+#carta-nome { text-align: center; color: var(--oro); letter-spacing: 2px; margin-bottom: 8px; }
+.testo { font-size: 17px; line-height: 1.6; text-align: center; }

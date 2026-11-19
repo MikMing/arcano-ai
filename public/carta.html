@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Il tuo Arcano</title>
+<link rel="stylesheet" href="/stile.css">
+</head>
+<body>
+<!-- Pagina aperta dal QR stampato sulla carta. In fase 2 qui arriva la vista AR. -->
+<main>
+  <div class="carta" id="carta" style="margin-top:8px">
+    <img id="carta-img" alt="">
+    <video id="carta-video" muted loop playsinline preload="auto"></video>
+  </div>
+  <p class="stato" id="video-stato"></p>
+  <p class="testo" id="carta-testo"></p>
+  <div class="row"><a class="btn sec" href="/">Scopri il tuo Arcano</a></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const id = location.pathname.split('/').pop();
+
+async function carica() {
+  const r = await fetch(`/api/carta/${encodeURIComponent(id)}`);
+  if (!r.ok) { $('carta-testo').textContent = 'Carta non trovata'; $('carta').style.display = 'none'; return; }
+  const c = await r.json();
+  $('carta-img').src = c.immagine;
+  $('carta-testo').textContent = c.testo;
+  const v = $('carta-video'), q = c.riquadro;
+  v.style.left = `${q.left * 100}%`; v.style.top = `${q.top * 100}%`;
+  v.style.width = `${q.width * 100}%`; v.style.height = `${q.height * 100}%`;
+  v.style.borderRadius = `${q.radius * 100}% / ${q.radius * 100 * q.width / q.height * 2 / 3}%`;
+  attendi();
+}
+
+async function attendi() {
+  try {
+    const s = await (await fetch(`/api/video/${encodeURIComponent(id)}`)).json();
+    if (s.stato === 'PRONTO') {
+      const v = $('carta-video');
+      v.src = s.url; v.load();
+      v.oncanplay = () => { v.classList.add('on'); v.play().catch(() => {}); $('video-stato').textContent = ''; };
+      return;
+    }
+    if (s.stato === 'FALLITO') { $('video-stato').textContent = ''; return; }
+  } catch {}
+  $('video-stato').textContent = 'La carta si sta animando...';
+  setTimeout(attendi, 5000);
+}
+carica();
+</script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Il tuo Arcano</title>
+<link rel="stylesheet" href="/stile.css">
+</head>
+<body>
+<main>
+
+  <!-- 1. Home -->
+  <section id="s-home" class="step on">
+    <div class="center">
+      <p class="kicker">Scopri il tuo</p>
+      <h1>Arcano</h1>
+      <p class="lead">Cinque domande, una foto. La tua carta prenderà vita.</p>
+      <button class="btn" id="entra">Entra</button>
+    </div>
+  </section>
+
+  <!-- 2. Questionario -->
+  <section id="s-domande" class="step">
+    <div class="progress"><div id="bar"></div></div>
+    <p class="kicker" id="qnum"></p>
+    <h2 id="qtesto"></h2>
+    <div id="opzioni" class="opzioni"></div>
+    <button class="link" id="indietro">Indietro</button>
+  </section>
+
+  <!-- 3. Foto e consenso -->
+  <section id="s-foto" class="step">
+    <h2>Ultimo passo</h2>
+    <p class="label">La tua carta</p>
+    <div class="toggle" id="genere">
+      <button data-v="m" class="sel">al maschile</button>
+      <button data-v="f">al femminile</button>
+    </div>
+    <p class="label">La tua foto</p>
+    <div class="foto-box">
+      <img id="anteprima" alt="">
+      <div id="foto-vuota">Viso ben visibile, frontale, con buona luce</div>
+    </div>
+    <div class="row">
+      <label class="btn sec">Scatta<input type="file" accept="image/*" capture="user" id="cam" hidden></label>
+      <label class="btn sec">Galleria<input type="file" accept="image/*" id="gal" hidden></label>
+    </div>
+    <label class="consenso">
+      <input type="checkbox" id="consenso">
+      <span>Acconsento all'uso della mia foto per generare la carta e il video. La foto originale viene cancellata dopo la generazione; carta e video vengono eliminati al termine dell'iniziativa.</span>
+    </label>
+    <button class="btn" id="crea" disabled>Crea la mia carta</button>
+    <p class="errore" id="errore"></p>
+  </section>
+
+  <!-- 4. Attesa -->
+  <section id="s-attesa" class="step">
+    <div class="center">
+      <div class="spinner"></div>
+      <h2 id="attesa-titolo">Le carte si stanno mescolando...</h2>
+      <p class="lead" id="attesa-sub">Ci vuole circa un minuto.</p>
+    </div>
+  </section>
+
+  <!-- 5. Risultato -->
+  <section id="s-carta" class="step">
+    <div class="carta" id="carta">
+      <img id="carta-img" alt="La tua carta">
+      <video id="carta-video" muted loop playsinline preload="auto"></video>
+    </div>
+    <p class="stato" id="video-stato">La tua carta si sta animando...</p>
+    <p class="testo" id="carta-testo"></p>
+    <div class="row">
+      <a class="btn sec" id="scarica" download>Scarica la carta</a>
+      <button class="btn sec" id="rifai">Ricomincia</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let domande = [], risposte = [], q = 0, foto = null, genere = 'm', pollTimer = null;
+
+function vai(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.id === id));
+  window.scrollTo(0, 0);
+}
+
+async function readJson(r) {
+  const t = await r.text();
+  try { return JSON.parse(t); } catch { throw new Error('Il server si sta riavviando, riprova tra un minuto.'); }
+}
+
+// ---- Questionario ----
+$('entra').onclick = async () => {
+  try {
+    if (!domande.length) domande = await readJson(await fetch('/api/domande'));
+    risposte = []; q = 0; mostraDomanda(); vai('s-domande');
+  } catch (e) { alert(e.message); }
+};
+
+function mostraDomanda() {
+  const d = domande[q];
+  $('qnum').textContent = `Domanda ${q + 1} di ${domande.length}`;
+  $('qtesto').textContent = d.testo;
+  $('bar').style.width = `${(q / domande.length) * 100}%`;
+  $('opzioni').innerHTML = '';
+  d.opzioni.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'opz' + (risposte[q] === i ? ' sel' : '');
+    b.textContent = o;
+    b.onclick = () => {
+      risposte[q] = i;
+      b.classList.add('sel');
+      setTimeout(() => {
+        if (q < domande.length - 1) { q++; mostraDomanda(); }
+        else vai('s-foto');
+      }, 220);
+    };
+    $('opzioni').appendChild(b);
+  });
+}
+
+$('indietro').onclick = () => { if (q > 0) { q--; mostraDomanda(); } else vai('s-home'); };
+
+// ---- Foto ----
+document.querySelectorAll('#genere button').forEach(b => b.onclick = () => {
+  genere = b.dataset.v;
+  document.querySelectorAll('#genere button').forEach(x => x.classList.toggle('sel', x === b));
+});
+
+// Riduce la foto a 1600 px in JPEG prima dell'invio
+async function riduci(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const b = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+    return b ? new File([b], 'foto.jpg', { type: 'image/jpeg' }) : file;
+  } catch { return file; }
+}
+
+function setFoto(f) {
+  if (!f) return;
+  foto = f;
+  $('anteprima').src = URL.createObjectURL(f);
+  $('anteprima').style.display = 'block';
+  $('foto-vuota').style.display = 'none';
+  aggiorna();
+}
+$('cam').onchange = e => setFoto(e.target.files[0]);
+$('gal').onchange = e => setFoto(e.target.files[0]);
+$('consenso').onchange = aggiorna;
+function aggiorna() { $('crea').disabled = !(foto && $('consenso').checked); }
+
+// ---- Creazione ----
+const frasi = ['Le carte si stanno mescolando...', 'Sto leggendo le tue risposte...', 'Sto disegnando il tuo arcano...', 'Ultimi tocchi d\'oro...'];
+$('crea').onclick = async () => {
+  $('errore').textContent = '';
+  vai('s-attesa');
+  let i = 0;
+  const t = setInterval(() => { $('attesa-titolo').textContent = frasi[++i % frasi.length]; }, 6000);
+  try {
+    const fd = new FormData();
+    fd.append('photo', await riduci(foto));
+    fd.append('risposte', JSON.stringify(risposte));
+    fd.append('genere', genere);
+    fd.append('consenso', 'si');
+    const r = await fetch('/api/carta', { method: 'POST', body: fd });
+    const j = await readJson(r);
+    if (!r.ok) throw new Error(j.error);
+    mostraCarta(j);
+  } catch (e) {
+    vai('s-foto');
+    $('errore').textContent = e.message;
+  } finally { clearInterval(t); }
+};
+
+function mostraCarta(c) {
+  $('carta-img').src = c.immagine;
+  $('carta-testo').textContent = c.testo;
+  $('scarica').href = c.immagine;
+  $('scarica').download = `arcano-${c.id}.png`;
+  posizionaVideo(c);
+  $('carta-video').classList.remove('on');
+  $('video-stato').textContent = 'La tua carta si sta animando...';
+  vai('s-carta');
+  attendiVideo(c.id);
+}
+
+// Il video copre esattamente il riquadro dell'illustrazione: cornice, nome e QR restano quelli della carta
+function posizionaVideo(c) {
+  const v = $('carta-video'), q = c.riquadro;
+  v.style.left = `${q.left * 100}%`; v.style.top = `${q.top * 100}%`;
+  v.style.width = `${q.width * 100}%`; v.style.height = `${q.height * 100}%`;
+  v.style.borderRadius = `${q.radius * 100}% / ${q.radius * 100 * q.width / q.height * 2 / 3}%`;
+}
+
+function attendiVideo(id) {
+  clearTimeout(pollTimer);
+  const t0 = Date.now();
+  const giro = async () => {
+    try {
+      const s = await readJson(await fetch(`/api/video/${id}`));
+      if (s.stato === 'PRONTO') return avviaVideo(s.url);
+      if (s.stato === 'FALLITO') { $('video-stato').textContent = 'Animazione non riuscita.'; return; }
+    } catch {}
+    const sec = Math.round((Date.now() - t0) / 1000);
+    $('video-stato').textContent = `La tua carta si sta animando... ${sec}s`;
+    pollTimer = setTimeout(giro, 5000);
+  };
+  giro();
+}
+
+function avviaVideo(url) {
+  const v = $('carta-video');
+  v.src = url;
+  v.load();
+  v.oncanplay = () => { v.classList.add('on'); v.play().catch(() => {}); $('video-stato').textContent = ''; };
+}
+
+$('rifai').onclick = () => {
+  clearTimeout(pollTimer);
+  foto = null; $('anteprima').style.display = 'none'; $('foto-vuota').style.display = 'block';
+  $('consenso').checked = false; aggiorna();
+  vai('s-home');
+};
+</script>
+</body>
+</html>
