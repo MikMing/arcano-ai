@@ -63,15 +63,15 @@ async function deleteInitImage(id) {
 function cardPrompt(arcano, scelte) {
   const a = ARCANI[arcano];
   const tratti = [a.traits, ...scelte.map(o => o.en)].join(', ');
-  return `Using the person in the reference photo as the subject, create a dreamlike painterly storybook illustration, vertical 4:5, filling the entire image edge to edge.
+  return `Using the person in the reference photo as the subject, create a fine art painterly illustration for a premium adult tarot deck, vertical 4:5, filling the entire image edge to edge.
 
-Keep the person's face clearly recognizable: same facial features, face shape, hairstyle and skin tone. The person is the clear focus, shown from the waist up, centered, with the face in the upper third of the image.
+Keep the person's face clearly recognizable: same facial features, face shape, hairstyle and skin tone. Realistic adult human proportions, natural head-to-body ratio, no caricature, no exaggerated features. The person is the clear focus, shown from the waist up, centered, with the face in the upper third of the image, with a calm, confident, natural expression.
 
-The scene represents the tarot archetype ${a.nome.m} with these traits: ${tratti}. Symbols: ${a.simboli}. Secondary elements stay smaller and further back, they never crowd the figure or cover the lower part of the body. Animals, if any, are small and in the background.
+The scene represents the tarot archetype ${a.nome.m} with these traits: ${tratti}. Symbols: ${a.simboli}. Secondary elements stay smaller and further back, they never crowd the figure. Animals, if any, are small and in the background.
 
-Style: whimsical, poetic, gently surreal, soft gouache and oil textures, warm luminous colors, a few floating dreamlike elements in the sky, a symbolic landscape that tells the traits visually.
+Style: elegant and sophisticated, rich oil painting and gouache textures, warm luminous light, refined color palette, dreamlike and poetic atmosphere with subtle symbolic details, like a museum-quality editorial illustration. Not cartoon, not children's book, no cute faces on objects, no children, no comic style.
 
-No text, no letters, no border, no frame, no card layout: only the illustration. Mood: positive, magical, inspiring. No dark or ominous elements.`;
+No text, no letters, no border, no frame, no card layout: only the illustration. Mood: positive, noble, inspiring. No dark or ominous elements.`;
 }
 
 async function createImage(initImageId, prompt, w = IMG_W, h = IMG_H) {

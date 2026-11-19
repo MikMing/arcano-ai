@@ -35,7 +35,7 @@ const ARCANI = {
     motto: 'Porti luce ovunque vai, e la tua gioia è contagiosa.',
     num: 'XIX', nome: { m: 'IL SOLE', f: 'IL SOLE' },
     traits: 'energy, joy, human warmth',
-    simboli: 'a huge radiant smiling sun, sunflowers, a bright red banner, warm golden light everywhere',
+    simboli: 'a great radiant sun behind the figure like a halo, golden sunflowers, a flowing red banner, warm golden light',
     testo: 'Porti luce e energia. Le persone stanno bene accanto a te, e la tua gioia è contagiosa.'
   },
   forza: {
